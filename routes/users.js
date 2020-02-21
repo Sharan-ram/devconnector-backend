@@ -2,6 +2,8 @@ const express = require("express");
 const { check, validationResult } = require("express-validator");
 const bcrypt = require("bcryptjs");
 const gravatar = require("gravatar");
+const jwt = require("jsonwebtoken");
+const config = require("config");
 
 const router = express.Router();
 const Users = require("../models/User");
@@ -56,7 +58,27 @@ router.post(
 
       await user.save();
 
-      res.send("User registered.");
+      const payload = {
+        user: {
+          id: user.id
+        }
+      };
+      // TODO: Modify the expiration time during production
+      jwt.sign(
+        payload,
+        config.get("jwtSecret"),
+        { expiresIn: 3600000 },
+        (err, token) => {
+          if (err) {
+            console.error(err.message);
+            return res.status(500).send("Internal server error");
+          }
+
+          return res.json({
+            jwt: token
+          });
+        }
+      );
     } catch (err) {
       console.error(err.message);
       return res.status(500).send("Internal server error");
