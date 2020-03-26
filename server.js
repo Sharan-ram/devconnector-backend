@@ -4,6 +4,7 @@ const dbConnect = require("./config/db");
 
 const userRoutes = require("./routes/users");
 const authRoutes = require("./routes/auth");
+const profileRoutes = require("./routes/profile");
 
 const app = express();
 
@@ -19,6 +20,9 @@ app.use("/api/users", userRoutes);
 
 // Auth routes
 app.use("/api/auth", authRoutes);
+
+// Profile routes
+app.use("/api/profile", profileRoutes);
 
 const PORT = process.env.PORT || 3000;
 
