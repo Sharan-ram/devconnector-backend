@@ -31,6 +31,40 @@ router.get("/me", authMiddleware, async (req, res) => {
   }
 });
 
+// @Route  : GET /
+// @Desc   : Get all profiles
+// @Access : Public
+router.get("/", async (req, res) => {
+  try {
+    const profiles = await Profile.find().populate("user", ["name", "avatar"]);
+    res.json(profiles);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// @Route  : GET /user/:user_id
+// @Desc   : Get profile by userId
+// @Access : Public
+router.get("/user/:user_id", async (req, res) => {
+  try {
+    const profile = await Profile.findOne({
+      user: req.params.user_id
+    }).populate("user", ["name", "avatar"]);
+    if (!profile) {
+      return res.status(400).json({ errors: [{ msg: "Profile not found" }] });
+    }
+    res.json(profile);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == "ObjectId") {
+      return res.status(400).json({ errors: [{ msg: "Profile not found" }] });
+    }
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 // @Route  : POST /
 // @Desc   : Create/Update user profile
 // Access  : Private
