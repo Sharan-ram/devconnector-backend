@@ -51,6 +51,34 @@ router.get("/:id", authMiddleware, async (req, res) => {
   }
 });
 
+// @Route:   PUT /:id/like
+// @desc:    Like a post
+// @Access:  Private
+router.put("/:id/like", authMiddleware, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+    }
+
+    const like = post.likes.find(
+      like => like.user.toString() === req.body.user.toString()
+    );
+    if (!like) {
+      post.likes.push({ user: req.body.user });
+      post.save();
+      return res.json(post.likes);
+    }
+    res.send("Post has already been liked");
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == "ObjectId") {
+      return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+    }
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 // @Route:   POST /
 // @desc:    Create a new post
 // @Access:  Private
