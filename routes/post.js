@@ -194,6 +194,38 @@ router.post("/:id/comment", [
   ]
 ]);
 
+// @Route:   DELETE /:postId/comment/:commentId
+// @desc:    Delete a comment
+// @Access:  Private
+router.delete(
+  "/:postId/comment/:commentId",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { postId, commentId } = req.params;
+      const post = await Post.findById(postId);
+      if (!post) {
+        return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+      }
+      const commentIndex = post.comments.findIndex(
+        comment => commentId.toString() === comment.id.toString()
+      );
+      if (commentIndex !== -1) {
+        post.comments.splice(commentIndex, 1);
+        await post.save();
+        return res.json(post.comments);
+      }
+      res.status(400).json({ errors: [{ msg: "Comment already deleted" }] });
+    } catch (err) {
+      console.error(err.message);
+      if (err.kind == "ObjectId") {
+        return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+      }
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
 // @Route:   DELETE /:id
 // @desc:    Delete post
 // @Access:  Private
