@@ -79,6 +79,34 @@ router.put("/:id/like", authMiddleware, async (req, res) => {
   }
 });
 
+// @Route:   PUT /:id/unlike
+// @desc:    Unlike a post
+// @Access:  Private
+router.put("/:id/unlike", authMiddleware, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+    }
+
+    const likeIndex = post.likes.findIndex(
+      like => like.user.toString() === req.body.user.toString()
+    );
+    if (likeIndex !== -1) {
+      post.likes.splice(likeIndex, 1);
+      post.save();
+      return res.json(post.likes);
+    }
+    res.send("Post has already been unliked");
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == "ObjectId") {
+      return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+    }
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 // @Route:   POST /
 // @desc:    Create a new post
 // @Access:  Private
