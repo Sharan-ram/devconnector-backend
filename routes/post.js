@@ -38,6 +38,25 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
+// @Route:   GET /:id
+// @desc:    Get post by post id
+// @Access:  Private
+router.get("/:id", authMiddleware, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+    }
+    res.json(post);
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == "ObjectId") {
+      return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+    }
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 // @Route:   POST /
 // @desc:    Create a new post
 // @Access:  Private
