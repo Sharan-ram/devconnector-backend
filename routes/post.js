@@ -6,6 +6,38 @@ const User = require("../models/User");
 
 const router = express.Router();
 
+// TODO: create 4 routes
+// get all posts
+// get post by id
+// get all posts of the user
+// delete a post
+
+// @Route:   GET /all
+// @desc:    Get all posts
+// @Access:  Private
+router.get("/all", authMiddleware, async (req, res) => {
+  try {
+    const posts = await Post.find().sort({ date: -1 });
+    res.json(posts);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// @Route:   GET /
+// @desc:    Get all posts of the logged in user
+// @Access:  Private
+router.get("/", authMiddleware, async (req, res) => {
+  try {
+    const posts = await Post.find({ user: req.user.id }).sort({ date: -1 });
+    res.json(posts);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 // @Route:   POST /
 // @desc:    Create a new post
 // @Access:  Private
