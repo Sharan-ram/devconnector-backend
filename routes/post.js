@@ -6,12 +6,6 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-// TODO: create 4 routes
-// get all posts
-// get post by id
-// get all posts of the user
-// delete a post
-
 // @Route:   GET /all
 // @desc:    Get all posts
 // @Access:  Private
@@ -91,5 +85,32 @@ router.post(
     }
   }
 );
+
+// @Route:   DELETE /:id
+// @desc:    Delete post
+// @Access:  Private
+router.delete("/:id", authMiddleware, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+    if (!post) {
+      return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+    }
+
+    if (post.user.toString() !== req.user.id) {
+      return res
+        .status(403)
+        .json({ errors: [{ msg: "Post cannot be deleted" }] });
+    }
+
+    await post.remove();
+    res.send("Post deleted");
+  } catch (err) {
+    console.error(err.message);
+    if (err.kind == "ObjectId") {
+      return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+    }
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 module.exports = router;
