@@ -1,5 +1,7 @@
 const express = require("express");
 const { check, validationResult } = require("express-validator");
+const axios = require("axios");
+const config = require("config");
 const authMiddleware = require("../middleware/auth");
 const Profile = require("../models/Profile");
 const User = require("../models/User");
@@ -61,6 +63,38 @@ router.get("/user/:user_id", async (req, res) => {
     console.error(err.message);
     if (err.kind == "ObjectId") {
       return res.status(400).json({ errors: [{ msg: "Profile not found" }] });
+    }
+    res.status(500).send("Internal Server Error");
+  }
+});
+
+// @Route  : GET /github/:username
+// @Desc   : Get user repos
+// @Access : Public
+router.get("/github/:username", async (req, res) => {
+  try {
+    const options = {
+      url: `https://api.github.com/users/${req.params.username}/repos`,
+      params: {
+        per_page: 5,
+        sort: "created:asc",
+        client_id: config.get("githubClientId"),
+        client_secret: config.get("githubSecret")
+      },
+      method: "GET",
+      headers: {
+        "user-agent": "node.js"
+      }
+    };
+
+    const { data } = await axios(options);
+    res.json(data);
+  } catch (err) {
+    console.log(err.message);
+    if (err.response) {
+      return res
+        .status(404)
+        .json({ errors: [{ msg: "Github profile not found" }] });
     }
     res.status(500).send("Internal Server Error");
   }
