@@ -2,6 +2,7 @@ const express = require("express");
 const { check, validationResult } = require("express-validator");
 const authMiddleware = require("../middleware/auth");
 const Profile = require("../models/Profile");
+const User = require("../models/User");
 
 const router = express.Router();
 
@@ -135,5 +136,19 @@ router.post(
     }
   }
 );
+
+// @Route  : DELETE /
+// @Desc   : Delete user and profile of the logged in user
+// @Access : Private
+router.delete("/", authMiddleware, async (req, res) => {
+  try {
+    await Profile.findOneAndDelete({ user: req.user.id });
+    await User.findOneAndDelete({ _id: req.user.id });
+    res.json({ msg: "Profile deleted" });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 module.exports = router;
