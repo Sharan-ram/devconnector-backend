@@ -61,11 +61,17 @@ router.put("/:id/like", authMiddleware, async (req, res) => {
       return res.status(400).json({ errors: [{ msg: "Post not found" }] });
     }
 
-    const like = post.likes.find(
-      like => like.user.toString() === req.body.user.toString()
-    );
+    const like =
+      post.likes &&
+      post.likes.find(
+        like => like.user.toString() === req.body.user.toString()
+      );
     if (!like) {
-      post.likes.push({ user: req.body.user });
+      if (!post.likes) {
+        post.likes = [{ user: req.body.user }];
+      } else {
+        post.likes.push({ user: req.body.user });
+      }
       post.save();
       return res.json(post.likes);
     }
@@ -89,9 +95,11 @@ router.put("/:id/unlike", authMiddleware, async (req, res) => {
       return res.status(400).json({ errors: [{ msg: "Post not found" }] });
     }
 
-    const likeIndex = post.likes.findIndex(
-      like => like.user.toString() === req.body.user.toString()
-    );
+    const likeIndex =
+      post.likes &&
+      post.likes.findIndex(
+        like => like.user.toString() === req.body.user.toString()
+      );
     if (likeIndex !== -1) {
       post.likes.splice(likeIndex, 1);
       post.save();
@@ -141,6 +149,50 @@ router.post(
     }
   }
 );
+
+// @Route:   POST /:id/comment
+// @desc:    Add a comment
+// @Access:  Private
+router.post("/:id/comment", [
+  authMiddleware,
+  [
+    check("text", "Text cannot be empty")
+      .not()
+      .isEmpty(),
+    async (req, res) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      try {
+        const post = await Post.findById(req.params.id);
+        if (!post) {
+          return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+        }
+        const user = await User.findById(req.user.id);
+        const newComment = {
+          text: req.body.text,
+          name: user.name,
+          avatar: user.avatar,
+          user: req.body.user
+        };
+        if (!post.comments) {
+          post.comments = [newComment];
+        } else {
+          post.comments.push(newComment);
+        }
+        await post.save();
+        res.json(post.comments);
+      } catch (err) {
+        console.error(err.message);
+        if (err.kind == "ObjectId") {
+          return res.status(400).json({ errors: [{ msg: "Post not found" }] });
+        }
+        res.status(500).send("Internal Server Error");
+      }
+    }
+  ]
+]);
 
 // @Route:   DELETE /:id
 // @desc:    Delete post
