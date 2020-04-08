@@ -14,16 +14,16 @@ const router = express.Router();
 router.get("/me", authMiddleware, async (req, res) => {
   try {
     const profile = await Profile.findOne({
-      user: req.user.id
+      user: req.user.id,
     }).populate("user", ["name", "avatar"]);
 
     if (!profile) {
-      return res.json({
+      return res.status(400).json({
         errors: [
           {
-            msg: "The profile does not exist"
-          }
-        ]
+            msg: "The profile does not exist",
+          },
+        ],
       });
     }
 
@@ -53,7 +53,7 @@ router.get("/", async (req, res) => {
 router.get("/user/:user_id", async (req, res) => {
   try {
     const profile = await Profile.findOne({
-      user: req.params.user_id
+      user: req.params.user_id,
     }).populate("user", ["name", "avatar"]);
     if (!profile) {
       return res.status(400).json({ errors: [{ msg: "Profile not found" }] });
@@ -79,12 +79,12 @@ router.get("/github/:username", async (req, res) => {
         per_page: 5,
         sort: "created:asc",
         client_id: config.get("githubClientId"),
-        client_secret: config.get("githubSecret")
+        client_secret: config.get("githubSecret"),
       },
       method: "GET",
       headers: {
-        "user-agent": "node.js"
-      }
+        "user-agent": "node.js",
+      },
     };
 
     const { data } = await axios(options);
@@ -108,13 +108,9 @@ router.post(
   [
     authMiddleware,
     [
-      check("status", "Status is required")
-        .not()
-        .isEmpty(),
-      check("skills", "Skills is required")
-        .not()
-        .isEmpty()
-    ]
+      check("status", "Status is required").not().isEmpty(),
+      check("skills", "Skills is required").not().isEmpty(),
+    ],
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -132,7 +128,7 @@ router.post(
       githubusername = "",
       experience = [],
       education = [],
-      social = {}
+      social = {},
     } = req.body;
 
     const profileFields = {
@@ -145,7 +141,7 @@ router.post(
       githubusername,
       experience,
       education,
-      social
+      social,
     };
     try {
       let profile = await Profile.findOne({ user: req.user.id });
