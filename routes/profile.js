@@ -198,7 +198,7 @@ router.post(
   }
 );
 
-//@Route   : PUT /experience
+//@Route   : PUT /experience/:id
 //@Desc    : update existing experience
 //@Access  : Private
 router.put(
@@ -228,6 +228,24 @@ router.put(
     }
   }
 );
+
+//@Route   : DELETE /experience/:id
+//@Desc    : Delete experience
+//@Access  : Private
+router.delete("/experience/:id", authMiddleware, async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    const experienceIndex = profile.experience.findIndex(
+      (exp) => exp.id === req.params.id
+    );
+    profile.experience.splice(experienceIndex, 1);
+    await profile.save();
+    res.json(profile);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
 
 // @Route  : DELETE /
 // @Desc   : Delete user and profile of the logged in user
