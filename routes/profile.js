@@ -198,6 +198,37 @@ router.post(
   }
 );
 
+//@Route   : PUT /experience
+//@Desc    : update existing experience
+//@Access  : Private
+router.put(
+  "/experience/:id",
+  [
+    authMiddleware,
+    check("title", "Title is required").not().isEmpty(),
+    check("company", "Company is required").not().isEmpty(),
+    check("from", "Start date is required").not().isEmpty(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const profile = await Profile.findOne({ user: req.user.id });
+      profile.experience = profile.experience.map((exp) => {
+        if (exp.id === req.params.id) return req.body;
+        return exp;
+      });
+      await profile.save();
+      res.json(profile);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
 // @Route  : DELETE /
 // @Desc   : Delete user and profile of the logged in user
 // @Access : Private
