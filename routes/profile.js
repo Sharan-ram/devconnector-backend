@@ -126,8 +126,6 @@ router.post(
       skills = [],
       bio = "",
       githubusername = "",
-      experience = [],
-      education = [],
       social = {},
     } = req.body;
 
@@ -139,8 +137,6 @@ router.post(
       skills,
       bio,
       githubusername,
-      experience,
-      education,
       social,
     };
     try {
