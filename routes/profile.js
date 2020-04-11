@@ -247,6 +247,92 @@ router.delete("/experience/:id", authMiddleware, async (req, res) => {
   }
 });
 
+//@Route   : POST /education
+//@Desc    : Add new education
+//@Access  : Private
+router.post(
+  "/education",
+  [
+    authMiddleware,
+    check("school", "School is required").not().isEmpty(),
+    check("degree", "Degree is required").not().isEmpty(),
+    check("fieldofstudy", "Field of study is required").not().isEmpty(),
+    check("from", "From date   is required").not().isEmpty(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const profile = await Profile.findOne({ user: req.user.id });
+      if (!profile) {
+        return res.status(400).json({
+          errors: [
+            { msg: "Please update the profile before adding education" },
+          ],
+        });
+      }
+      profile.education.push(req.body);
+      await profile.save();
+      res.json(profile);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
+//@Route   : PUT /education/:id
+//@Desc    : update existing education
+//@Access  : Private
+router.put(
+  "/education/:id",
+  [
+    authMiddleware,
+    check("school", "School is required").not().isEmpty(),
+    check("degree", "Degree is required").not().isEmpty(),
+    check("fieldofstudy", "Field of study is required").not().isEmpty(),
+    check("from", "From date   is required").not().isEmpty(),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    try {
+      const profile = await Profile.findOne({ user: req.user.id });
+      profile.education = profile.education.map((exp) => {
+        if (exp.id === req.params.id) return req.body;
+        return exp;
+      });
+      await profile.save();
+      res.json(profile);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+);
+
+//@Route   : DELETE /education/:id
+//@Desc    : Delete education
+//@Access  : Private
+router.delete("/education/:id", authMiddleware, async (req, res) => {
+  try {
+    const profile = await Profile.findOne({ user: req.user.id });
+    const educationIndex = profile.education.findIndex(
+      (exp) => exp.id === req.params.id
+    );
+    profile.education.splice(educationIndex, 1);
+    await profile.save();
+    res.json(profile);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal Server Error");
+  }
+});
+
 // @Route  : DELETE /
 // @Desc   : Delete user and profile of the logged in user
 // @Access : Private
