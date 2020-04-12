@@ -64,7 +64,7 @@ router.put("/:id/like", authMiddleware, async (req, res) => {
     const like =
       post.likes &&
       post.likes.find(
-        like => like.user.toString() === req.body.user.toString()
+        (like) => like.user.toString() === req.body.user.toString()
       );
     if (!like) {
       if (!post.likes) {
@@ -73,7 +73,7 @@ router.put("/:id/like", authMiddleware, async (req, res) => {
         post.likes.push({ user: req.body.user });
       }
       post.save();
-      return res.json(post.likes);
+      return res.json(post);
     }
     res.send("Post has already been liked");
   } catch (err) {
@@ -98,12 +98,12 @@ router.put("/:id/unlike", authMiddleware, async (req, res) => {
     const likeIndex =
       post.likes &&
       post.likes.findIndex(
-        like => like.user.toString() === req.body.user.toString()
+        (like) => like.user.toString() === req.body.user.toString()
       );
     if (likeIndex !== -1) {
       post.likes.splice(likeIndex, 1);
       post.save();
-      return res.json(post.likes);
+      return res.json(post);
     }
     res.send("Post has already been unliked");
   } catch (err) {
@@ -120,14 +120,7 @@ router.put("/:id/unlike", authMiddleware, async (req, res) => {
 // @Access:  Private
 router.post(
   "/",
-  [
-    authMiddleware,
-    [
-      check("text", "Text is required")
-        .not()
-        .isEmpty()
-    ]
-  ],
+  [authMiddleware, [check("text", "Text is required").not().isEmpty()]],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -139,7 +132,7 @@ router.post(
         text: req.body.text,
         name: user.name,
         avatar: user.avatar,
-        user: req.user.id
+        user: req.user.id,
       });
       const post = await newPost.save();
       res.json(post);
@@ -156,9 +149,7 @@ router.post(
 router.post("/:id/comment", [
   authMiddleware,
   [
-    check("text", "Text cannot be empty")
-      .not()
-      .isEmpty(),
+    check("text", "Text cannot be empty").not().isEmpty(),
     async (req, res) => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -174,7 +165,7 @@ router.post("/:id/comment", [
           text: req.body.text,
           name: user.name,
           avatar: user.avatar,
-          user: req.body.user
+          user: req.body.user,
         };
         if (!post.comments) {
           post.comments = [newComment];
@@ -182,7 +173,7 @@ router.post("/:id/comment", [
           post.comments.push(newComment);
         }
         await post.save();
-        res.json(post.comments);
+        res.json(post);
       } catch (err) {
         console.error(err.message);
         if (err.kind == "ObjectId") {
@@ -190,8 +181,8 @@ router.post("/:id/comment", [
         }
         res.status(500).send("Internal Server Error");
       }
-    }
-  ]
+    },
+  ],
 ]);
 
 // @Route:   DELETE /:postId/comment/:commentId
@@ -208,12 +199,12 @@ router.delete(
         return res.status(400).json({ errors: [{ msg: "Post not found" }] });
       }
       const commentIndex = post.comments.findIndex(
-        comment => commentId.toString() === comment.id.toString()
+        (comment) => commentId.toString() === comment.id.toString()
       );
       if (commentIndex !== -1) {
         post.comments.splice(commentIndex, 1);
         await post.save();
-        return res.json(post.comments);
+        return res.json(post);
       }
       res.status(400).json({ errors: [{ msg: "Comment already deleted" }] });
     } catch (err) {
