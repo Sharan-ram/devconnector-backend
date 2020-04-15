@@ -14,19 +14,17 @@ const Users = require("../models/User");
 router.post(
   "/",
   [
-    check("name", "Name cannot be blank")
-      .not()
-      .isEmpty(),
+    check("name", "Name cannot be blank").not().isEmpty(),
     check("email", "Email should be valid").isEmail(),
     check("password", "Password should be more than 6 characters").isLength({
-      min: 6
-    })
+      min: 6,
+    }),
   ],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        errors: errors.array()
+        errors: errors.array(),
       });
     }
 
@@ -36,7 +34,7 @@ router.post(
 
       if (user) {
         return res.status(400).json({
-          errors: [{ msg: "User already exists" }]
+          errors: [{ msg: "User already exists" }],
         });
       }
 
@@ -44,13 +42,13 @@ router.post(
         name,
         email,
         password,
-        avatar
+        avatar,
       });
 
       user.avatar = gravatar.url(email, {
         s: 200,
         r: "g",
-        d: "mp"
+        d: "mp",
       });
 
       const salt = await bcrypt.genSalt(10);
@@ -60,8 +58,8 @@ router.post(
 
       const payload = {
         user: {
-          id: user.id
-        }
+          id: user.id,
+        },
       };
       // TODO: Modify the expiration time during production
       jwt.sign(
@@ -75,7 +73,7 @@ router.post(
           }
 
           return res.json({
-            jwt: token
+            jwt: token,
           });
         }
       );
