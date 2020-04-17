@@ -18,13 +18,7 @@ router.get("/me", authMiddleware, async (req, res) => {
     }).populate("user", ["name", "avatar"]);
 
     if (!profile) {
-      return res.status(400).json({
-        errors: [
-          {
-            msg: "The profile does not exist",
-          },
-        ],
-      });
+      return res.send("Profile does not exist for this user");
     }
 
     return res.json(profile);
