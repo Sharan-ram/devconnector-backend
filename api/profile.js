@@ -34,9 +34,11 @@ router.get("/me", authMiddleware, async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const profiles = await Profile.find().populate("user", ["name", "avatar"]);
+    console.log("profiles", profiles);
     res.json(profiles);
   } catch (err) {
     console.error(err.message);
+    console.log("error", err.message);
     res.status(500).send("Internal Server Error");
   }
 });

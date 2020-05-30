@@ -3,10 +3,10 @@ const express = require("express");
 const cors = require("cors");
 const dbConnect = require("./config/db");
 
-const userRoutes = require("./routes/users");
-const authRoutes = require("./routes/auth");
-const profileRoutes = require("./routes/profile");
-const postRoutes = require("./routes/post");
+const userRoutes = require("./api/users");
+const authRoutes = require("./api/auth");
+const profileRoutes = require("./api/profile");
+const postRoutes = require("./api/post");
 
 const app = express();
 
